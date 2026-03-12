@@ -1,0 +1,90 @@
+"""
+Example: the specific Kummer surface over GF(2^127 - 1).
+
+This instantiates the SquaredKummerSurface and SquaredKummerPoint classes
+for the Kummer surface used in the pairing research.  All hardcoded constants
+(null point, Rosenhain invariants, curve orders, generator, random test points)
+live here so the library classes remain parameter-free.
+"""
+
+from sage.all import GF
+from kummer_surface import SquaredKummerSurface
+from kummer_point import SquaredKummerPoint
+from points import randompoints as _raw_points
+
+# ------------------------------------------------------------------
+# Base field
+# ------------------------------------------------------------------
+p = 2**246*3*67 - 1
+ell = 67
+F = GF(p)
+
+# ------------------------------------------------------------------
+# Kummer surface: null point and Rosenhain invariants
+# ------------------------------------------------------------------
+from_magma = [14563619561439671274064267294669858150005709431588288858052580823781116782630, 13454806426907545367845829201064487557983661848799930856637863004300863538119, 1, 1]
+_zero = tuple([F(x) for x in from_magma])
+
+
+# _lam = F(28356863910078205288614550619314017618)
+# _mu  = F(154040945529144206406682019582013187910)
+# _nu  = F(113206060534360680770189432771018826227)
+
+# ------------------------------------------------------------------
+# Orders of the two Jacobians above K up to doubling
+# ------------------------------------------------------------------
+qo = p+1
+qt = p+1
+
+K = SquaredKummerSurface(_zero, 
+                        #  rosenhain=(_lam, _mu, _nu),
+                          jacobian_order=qo, twist_order=qt)
+
+K2 = K.base_change(2)
+
+# ------------------------------------------------------------------
+# Convenience: canonical 2-torsion basis
+# ------------------------------------------------------------------
+basis = K.two_torsion_basis()
+
+
+# ------------------------------------------------------------------
+# Quick smoke test (run as script)
+# ------------------------------------------------------------------
+if __name__ == "__main__":
+    from random import choice
+
+    print("Null point on Kummer:", K.null_point().on_kummer())
+    # print("Generator on Kummer: ", gen.on_kummer())
+
+    # Scalar multiplication sanity check: [qo] * gen == null point
+    while True:
+        gen = K.random_point()
+        if gen.on_jacobian():
+            break
+        
+    assert (qo * gen).is_zero(), "Order check failed"
+    print("Order check passed: qo * gen == 0")
+
+    # Profile of a doubled random point should be trivial (all True)
+    P = K.random_point()
+    trivial = [True, True, True, True]
+    prof = P.profile_old(basis)
+    print(f"Profile of  P: {prof}  (trivial = {prof == trivial})")
+    prof = P.xDBL().profile_old(basis)
+    print(f"Profile of 2P: {prof}  (trivial = {prof == trivial})")
+    
+               
+    trivial_profile = (1,1,1,1)
+    
+    for i in range(10):
+        R = K.random_point()
+        if R.profile(ell).is_trivial():
+            print( (((p+1) // ell) * R) == K.zero() )
+        else:
+            print( (((p+1) // ell) * R) != K.zero() )
+            print( (ell*R).profile(ell).is_trivial())
+        
+        print("")
+            
+    
