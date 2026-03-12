@@ -1,5 +1,7 @@
 ## GOAL:
-I'm building a class here for doing generic arithmetical things on (squared) Kummer surfaces.
+I'm building a class here for doing generic arithmetical things on Jacobians and (squared) Kummer surfaces.
+On both objects, we are using cubical arithmetic to compute pairings, e.g. Tate, Weil, perhaps cokernel pairings.
+
 If you are wondering why I'm not using "ordinary" theta structures, but squared theta structures:
  - this class includes Tate pairing computations using cubical arithmetic
  - for now, this requires working on squared Kummer surfaces
