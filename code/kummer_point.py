@@ -462,6 +462,7 @@ class SquaredKummerPoint:
         # essentially computes the square of the Tate pairing
         # TODO: fix linearity
         assert (ell*self).is_zero()
+        P = self
         
         q = self.surface.field.cardinality()
         if (q - 1) % ell != 0:
