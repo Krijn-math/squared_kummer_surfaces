@@ -39,13 +39,6 @@ ros = (λ, μ, ν)
 
 K = SquaredKummerSurface(ros, jacobian_order=qo, twist_order=qt)
 
-λ = F2(12938376701500089469123999060444560237380085127671348976010005071974881035462)
-μ = F2(4618610882062834088149724968147708876591748255560510786118061150909387779558)
-ν = F2(1073370653850651346651397166382546615373880359440809096202890114345603658730)
-ros = (λ, μ, ν)
-
-K2 = SquaredKummerSurface(ros, jacobian_order=qo, twist_order=qt)
-
 def rosenhain_to_hyperelliptic(ros):
     f = x*(x-1)*(x-ros[0])*(x-ros[1])*(x-ros[2])
     return HyperellipticCurve(f), f
@@ -54,16 +47,29 @@ def ros_to_jac(ros):
     H, f = rosenhain_to_hyperelliptic(ros)
     return H.jacobian(), f
 
+
+H, f = rosenhain_to_hyperelliptic(ros)
+J = H.jacobian()
+J._ros = ros
+            
+λ = F2(12938376701500089469123999060444560237380085127671348976010005071974881035462)
+μ = F2(4618610882062834088149724968147708876591748255560510786118061150909387779558)
+ν = F2(1073370653850651346651397166382546615373880359440809096202890114345603658730)
+ros = (λ, μ, ν)
+
+K2 = SquaredKummerSurface(ros, jacobian_order=qo, twist_order=qt)
+
+
+
 # ------------------------------------------------------------------
 # Quick smoke test (run as script)
 # ------------------------------------------------------------------
 if __name__ == "__main__":
-    from random import choice
 
-    H, f = rosenhain_to_hyperelliptic(ros)
-    J = H.jacobian()
-    J._ros = ros
-            
+    ## trying to check R in <P> on Kummer surfaces using pairings
+    ## we need to be a bit careful with sign ambiguities
+    
+
     def random_curve_point(curve):
         while True:
             try:
@@ -107,26 +113,36 @@ if __name__ == "__main__":
         Q = K2(Q)
         return P.tate_pairing(Q, ell, difference=D)
     
-    # sample order ell point on jacobian
-    P = random_order_ell(J, ell)
-    P = J2(P[0], P[1])
+    def random_swap(R, S):
+        if randint(0,1) == 0:
+            return R, S
+        return S, R
     
-    # sample point on twist, on J everything is isotropic
-    Q = random_twist_point(J2)
-    
-    # compute (square of) Tate pairing
-    # NOTE: can still be trivial of course, but unlikely
-    zeta = jacobian_pairing(P, Q, ell)
-    
-    # some testing of bilinearity
-    for i in range(100):
+    for i in range(10):
         P = random_order_ell(J, ell)
+        R = random_order_ell(J, ell)
+        assert R not in [ i*P for i in range(ell)]
+        secret = randint(1, ell-1)
+        S = secret*P
+        
+        R, S = random_swap(R, S)
+        
         P = J2(P[0], P[1])
+        R = J2(R[0], R[1])
+        S = J2(S[0], S[1])
+        
         Q = random_twist_point(J2)
         
-        a = randint(1, ell - 1)
-        b = randint(1, ell - 1)
-        assert jacobian_pairing(a*P, b*Q, ell) == jacobian_pairing(P, Q, ell)**(a*b)
-    
-    print("bilinearity on Jacobian verified")
-    
+        z1 = jacobian_pairing(P, Q, ell)
+        z2 = jacobian_pairing(R, Q, ell)
+        z3 = jacobian_pairing(S, Q, ell)
+        a = z2.log(z1)
+        b = z3.log(z1)
+        
+        if a*P == R:
+            print(f"secret found: {secret == a}")
+        else:
+            # it must be b*P == S
+            assert b*P == S
+            print(f"secret found: {secret == b}")
+        

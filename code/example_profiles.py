@@ -1,10 +1,7 @@
 """
-Example: computing Tate profiles of degree 67 to check if R is in K(Fp) \ [67] K(Fp)
-
-This instantiates the SquaredKummerSurface and SquaredKummerPoint classes
-for the Kummer surface used in the pairing research.  All hardcoded constants
-(null point, Rosenhain invariants, curve orders, generator, random test points)
-live here so the library classes remain parameter-free.
+    Example: computing Tate profiles of degree 67 to check if R is in K(Fp) \ [67] K(Fp)
+    all on the Kummer surface! We are lucky here, the existing sign ambiguity is no problem
+    as we only need non-triviality
 """
 
 from sage.all import GF
