@@ -5,7 +5,9 @@ If you are wondering why I'm not using "ordinary" theta structures, but squared 
  - for now, this requires working on squared Kummer surfaces
 
 One nice application of this class is that it makes the computation of the Tate profile very easy,
-which has ample applications when doing general arithmetic on Kummer surfaces, e.g. in sampling bases and so on
+which has ample applications when doing general arithmetic on Kummer surfaces, e.g. in sampling bases and so on.
+
+One thing to be careful with when computing directly on the Kummer, e.g. not deriving from the Jacobian, is that we compute squares of Tate pairings, and can't differentiate between the Tate pairing or its inverse
 
 ## TODO:
  - when sampling points on the Kummer, we must (arbitrarily) choose a point difference in the Tate pairing computation, which effectively means we arbitrarily compute either t(P, R) or t(P, -R) = 1/t(P, R). When we derive these values from the Jacobian, we can resolve this issue
