@@ -7,7 +7,6 @@
 from sage.all import GF
 from kummer_surface import SquaredKummerSurface
 from kummer_point import SquaredKummerPoint
-from points import randompoints as _raw_points
 
 # ------------------------------------------------------------------
 # Base field
