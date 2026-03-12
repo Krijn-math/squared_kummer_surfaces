@@ -8,6 +8,6 @@ One nice application of this class is that it makes the computation of the Tate 
 which has ample applications when doing general arithmetic on Kummer surfaces, e.g. in sampling bases and so on
 
 ## TODO:
- - there is a bug in the computation of the Tate profile, which makes it non-linear for now (although with little effect on the profile)
+ - when sampling points on the Kummer, we must (arbitrarily) choose a point difference in the Tate pairing computation, which effectively means we arbitrarily compute either t(P, R) or t(P, -R) = 1/t(P, R). When we derive these values from the Jacobian, we can resolve this issue
  - due to some constraints, it is now focused on supersingular Jacobians of order (p+1)^2, although it should be easy to generalize to most other Jacobians, I think
  - there is almost no functionality for translating points on Jacobians to their Kummer points, eventhough this should be easy to do by applying the literature
