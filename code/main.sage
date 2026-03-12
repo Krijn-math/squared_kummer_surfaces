@@ -18,6 +18,7 @@ from points import randompoints as _raw_points
 p = 2**246*3*67 - 1
 ell = 67
 F = GF(p)
+R.<x> = F[]
 
 # ------------------------------------------------------------------
 # Kummer surface: null point and Rosenhain invariants
@@ -25,28 +26,26 @@ F = GF(p)
 from_magma = [14563619561439671274064267294669858150005709431588288858052580823781116782630, 13454806426907545367845829201064487557983661848799930856637863004300863538119, 1, 1]
 _zero = tuple([F(x) for x in from_magma])
 
-
-# _lam = F(28356863910078205288614550619314017618)
-# _mu  = F(154040945529144206406682019582013187910)
-# _nu  = F(113206060534360680770189432771018826227)
-
-# ------------------------------------------------------------------
-# Orders of the two Jacobians above K up to doubling
-# ------------------------------------------------------------------
 qo = p+1
 qt = p+1
 
-K = SquaredKummerSurface(_zero, 
-                        #  rosenhain=(_lam, _mu, _nu),
-                          jacobian_order=qo, twist_order=qt)
+# K = SquaredKummerSurface(_zero, jacobian_order=qo, twist_order=qt)
 
-K2 = K.base_change(2)
+λ = F(12938376701500089469123999060444560237380085127671348976010005071974881035462)
+μ = F(4618610882062834088149724968147708876591748255560510786118061150909387779558)
+ν = F(1073370653850651346651397166382546615373880359440809096202890114345603658730)
+ros = (λ, μ, ν)
 
-# ------------------------------------------------------------------
-# Convenience: canonical 2-torsion basis
-# ------------------------------------------------------------------
-basis = K.two_torsion_basis()
+K = SquaredKummerSurface(ros, jacobian_order=qo, twist_order=qt)
 
+
+def rosenhain_to_hyperelliptic(ros):
+    f = x*(x-1)*(x-ros[0])*(x-ros[1])*(x-ros[2])
+    return HyperellipticCurve(f), f
+
+def ros_to_jac(ros):
+    H, f = rosenhain_to_hyperelliptic(ros)
+    return H.jacobian(), f
 
 # ------------------------------------------------------------------
 # Quick smoke test (run as script)
@@ -54,37 +53,25 @@ basis = K.two_torsion_basis()
 if __name__ == "__main__":
     from random import choice
 
-    print("Null point on Kummer:", K.null_point().on_kummer())
-    # print("Generator on Kummer: ", gen.on_kummer())
-
-    # Scalar multiplication sanity check: [qo] * gen == null point
-    while True:
-        gen = K.random_point()
-        if gen.on_jacobian():
-            break
-        
-    assert (qo * gen).is_zero(), "Order check failed"
-    print("Order check passed: qo * gen == 0")
-
-    # Profile of a doubled random point should be trivial (all True)
-    P = K.random_point()
-    trivial = [True, True, True, True]
-    prof = P.profile_old(basis)
-    print(f"Profile of  P: {prof}  (trivial = {prof == trivial})")
-    prof = P.xDBL().profile_old(basis)
-    print(f"Profile of 2P: {prof}  (trivial = {prof == trivial})")
-    
-               
-    trivial_profile = (1,1,1,1)
-    
-    for i in range(10):
-        R = K.random_point()
-        if R.profile(ell).is_trivial():
-            print( (((p+1) // ell) * R) == K.zero() )
-        else:
-            print( (((p+1) // ell) * R) != K.zero() )
-            print( (ell*R).profile(ell).is_trivial())
-        
-        print("")
+    H, f = rosenhain_to_hyperelliptic(ros)
+    J = H.jacobian()
+    J._ros = ros
             
+    def random_curve_point(curve):
+        while True:
+            try:
+                return H.lift_x(F.random_element())
+                break
+            except:
+                pass
+            
+    def random_jacobian_element(jac):
+        P1 = random_curve_point(jac.curve())
+        P2 = random_curve_point(jac.curve())
+        return J(P1) + J(P2)
     
+    P = ((p+1) // ell)*random_jacobian_element(J)
+    Q = random_jacobian_element(J)
+    D = K(P - Q)
+    P = K(P)
+    Q = K(Q)

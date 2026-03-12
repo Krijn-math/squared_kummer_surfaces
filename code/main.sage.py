@@ -21,6 +21,7 @@ from points import randompoints as _raw_points
 # Base field
 # ------------------------------------------------------------------
 p = _sage_const_2 **_sage_const_246 *_sage_const_3 *_sage_const_67  - _sage_const_1 
+ell = _sage_const_67 
 F = GF(p)
 
 # ------------------------------------------------------------------
@@ -73,23 +74,35 @@ if __name__ == "__main__":
     # Profile of a doubled random point should be trivial (all True)
     P = K.random_point()
     trivial = [True, True, True, True]
-    prof = P.profile_old(basis)
+    prof = P.two_profile(basis)
     print(f"Profile of  P: {prof}  (trivial = {prof == trivial})")
-    prof = P.xDBL().profile_old(basis)
+    prof = P.xDBL().two_profile(basis)
     print(f"Profile of 2P: {prof}  (trivial = {prof == trivial})")
     
                
     trivial_profile = (_sage_const_1 ,_sage_const_1 ,_sage_const_1 ,_sage_const_1 )
     
-    for i in range(_sage_const_10 ):
-        R = K.random_point()
-        if R.profile(_sage_const_3 ) == trivial_profile:
-            print( (((p+_sage_const_1 ) // _sage_const_3 ) * R) == K.zero() )
-        else:
-            print( (((p+_sage_const_1 ) // _sage_const_3 ) * R) != K.zero() )
-            print( (_sage_const_3 *R).profile(_sage_const_3 ) == trivial_profile )
+    P1, P2, Q1, Q2 = K.torsion_basis(ell)
+    R = K.random_point()
+    
+    fails = [ i for i in range(_sage_const_1 , ell) if (i*P1).tate_pairing(R, ell) != P1.tate_pairing(R, ell)**i ]
+    
+    if len(fails) < _sage_const_10 :
+        print(f"Lineairity failures for {fails}")
+    else:
+        print(f"Lineairity failures for {len(fails)}")
+    
+    
+    
+    # for i in range(10):
+    #     R = K.random_point()
+    #     if R.profile(ell).is_trivial():
+    #         print( (((p+1) // ell) * R) == K.zero() )
+    #     else:
+    #         print( (((p+1) // ell) * R) != K.zero() )
+    #         print( (ell*R).profile(ell).is_trivial())
         
-        print("")
+    #     print("")
             
     
 

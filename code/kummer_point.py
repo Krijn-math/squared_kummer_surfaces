@@ -48,12 +48,13 @@ class SquaredKummerPoint:
         """
         self.surface = surface
         self.coords = tuple(coords)
+        assert self.on_kummer()
         self._addition_matrix = addition_matrix
 
     def _check_same_surface(self, other, name="other"):
         if not isinstance(other, SquaredKummerPoint):
             raise TypeError(f"{name} must be a SquaredKummerPoint, got {type(other)}")
-        if other.surface is not self.surface:
+        if other.surface != self.surface:
             raise ValueError(f"{name} must lie on the same SquaredKummerSurface")
         
     def same_jacobian(self, other):
@@ -250,8 +251,9 @@ class SquaredKummerPoint:
         P1 = R
         P2 = D
 
-        for i in n.bits():
-            if i == 1:
+        for i in range(n.bit_length()):
+            bit = (n >> i) & 1
+            if bit == 1:
                 P0, P1 = P0.xDBLADD(P1, P2)
             else:
                 P0, P2 = P0.xDBLADD(P2, P1)
@@ -396,7 +398,7 @@ class SquaredKummerPoint:
     # Pairing profile (cubical / Robert's algorithm)
     # ------------------------------------------------------------------
 
-    def profile_old(self, basis=None):
+    def two_profile(self, basis=None):
         """
         Compute the 2-Tate pairing profile of this point.
 
@@ -414,9 +416,9 @@ class SquaredKummerPoint:
             raise ValueError("basis must be a non-empty list of SquaredKummerPoints")
         for T in basis:
             self._check_same_surface(T, "basis element")
-        return [self._cubical_pairing(T).is_square() for T in basis]
+        return [self._cubical_pairing_degree_2(T).is_square() for T in basis]
 
-    def _cubical_pairing(self, T):
+    def _cubical_pairing_degree_2(self, T):
         """
         Compute the reduced 2-Tate pairing t_2(T, self) via Robert's algorithm
         (Algorithm 5.2 / Appendix 3 of the paper).
@@ -456,7 +458,9 @@ class SquaredKummerPoint:
     # HIGHER DEGREE PAIRINGS
     # ------------------------------------------------------------------
 
-    def unreduced_tate_pairing(self, R, ell):
+    def unreduced_tate_pairing(self, R, ell, difference=None):
+        # essentially computes the square of the Tate pairing
+        # TODO: fix linearity
         assert (ell*self).is_zero()
         
         q = self.surface.field.cardinality()
@@ -466,32 +470,45 @@ class SquaredKummerPoint:
             P = K_ext(self.coords) 
             R = K_ext(R.coords)
         
-        P = P.normalize()
-        R = R.normalize()
-        S, D = P.point_difference(R)
-        D = D.normalize()
+        if difference == None:
+            S, D = P.point_difference(R)
+        else:
+            D = difference
+        
+        # P = P.normalize()
+        # R = R.normalize()
+        # D = D.normalize()
         
         P_ell_R = P.three_point_ladder(ell , R, D)
         assert P_ell_R == R
         
-        lam1 = P_ell_R.coords[0]/R.coords[0]
-        lam0 = (ell*P).coords[0]/P.surface._zero[0]
+        lam1 = P_ell_R[0]/R[0]
+        lam0 = (ell*P)[0]/P.surface._zero[0]
         
         return lam1/lam0
 
-    def tate_pairing(self, R, ell):
+    def tate_pairing(self, R, ell, difference=None):
         # TODO: generalize to any field, not just Fp2
         assert (ell*self).is_zero()
         q = self.surface.field.cardinality()
         k = self.surface.embedding_degree(ell)
         
-        return self.unreduced_tate_pairing(R, ell)**((q**k-1) // ell)
+        # TODO: final reduction should use frobenius
+        return self.unreduced_tate_pairing(R, ell, difference=difference)**((q**k-1) // ell)
     
     def profile(self, ell):
         # TODO: generalize to even degrees too
+        # when computed from Jacobian, can include differences
         assert ell % 2 == 1
         return TateProfile(tuple([ P.tate_pairing(self, ell) for P in self.surface.torsion_basis(ell) ]))
 
+    def weil_pairing(self, other, ell, difference=None):
+        assert (ell*self).is_zero()
+        assert (ell*other).is_zero()
+        res = self.unreduced_tate_pairing(other, ell, difference=difference) / other.unreduced_tate_pairing(self, ell, difference=difference)
+        assert res**ell == 1
+        return res
+    
     # ------------------------------------------------------------------
     # Representation
     # ------------------------------------------------------------------

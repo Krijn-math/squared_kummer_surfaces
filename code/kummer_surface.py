@@ -27,31 +27,59 @@ def k_mul(P, Q):
 
 class SquaredKummerSurface:
 
-    def __init__(self, zero, rosenhain=None, jacobian_order=None, twist_order=None):
+    def __init__(self, zero, jacobian_order=None, twist_order=None):
         """
         Initialize a Kummer surface from its null point.
 
         zero:            4-tuple (a, b, c, d) of elements in a Sage finite field.
-        rosenhain:       optional 3-tuple (lam, mu, nu) of Rosenhain invariants.
-                         Required for two_torsion_basis() and point profile computation.
         jacobian_order:  optional integer order of the Jacobian above this Kummer surface.
                          Required for SquaredKummerPoint.on_jacobian().
         twist_order:     optional integer order of the twist Jacobian above this Kummer surface.
                          Required for SquaredKummerPoint.on_twist().
         """
-        self._zero = tuple(zero)
+        
+        ## when defined by null point
+        if len(zero) == 4:
+            self._zero = tuple(zero)
+        
+        # when defined by rosenhain invariants
+        elif len(zero) == 3:
+            ros = zero
+            self.rosenhain = tuple(ros)
+            self._zero = self.rosenhain_to_zero()
+            
         self.field = zero[0].parent()
         self._compute_constants()
+                    
+        try:
+            self.rosenhain
+        except:
+            self.rosenhain = self.rosenhain_invariants()    
+
         self.jacobian_order = jacobian_order
         self.twist_order = twist_order
         self.Mij = None
         self._torsion_basis_cache = {}
-        if rosenhain is not None:
-            self.rosenhain = rosenhain
-        else:
-            self.rosenhain = self.rosenhain_invariants()
         self._compute_addition_matrices()
+        
+    def mumford_to_squared_theta(self, point):
+        # assuming that the mumford representation
+        # is given for a curve in rosenhain form
+        
+        λ, μ, ν = point.scheme()._ros
+        u0, u1, _ = point[0].coefficients()
+        v0, _ = point[1].coefficients()
 
+        # K = SquaredKummerSurface(ros)
+        # a, b, c, d = K.zero()
+        a, b, c, d = self.zero()
+
+        X1 = a * (u0 * (1*μ - u0) * (λ + ν + u1) - v0**2)
+        X2 = b * (u0 * (λ*ν - u0) * (1 + μ + u1) - v0**2)
+        X3 = c * (u0 * (1*ν - u0) * (λ + μ + u1) - v0**2)
+        X4 = d * (u0 * (λ*μ - u0) * (1 + ν + u1) - v0**2)
+        
+        return (X1, X2, X3, X4)
 
     def __call__(self, point):
         from kummer_point import SquaredKummerPoint
@@ -63,9 +91,17 @@ class SquaredKummerSurface:
         
         if isinstance(point, tuple):
             return SquaredKummerPoint(self, point)
+        
+        if isinstance(point[0], Polynomial):
+            return SquaredKummerPoint(self, self.mumford_to_squared_theta(point))
 
         raise NotImplementedError("Unclear what input is")
-
+    
+    def __eq__(self, other):
+        p0 = self.zero()[0]
+        q0 = other.zero()[0]
+        return self._k_mul(self._zero, (q0,)*4) == other._k_mul(other._zero, (p0,)*4)
+    
     def zero(self):
         from kummer_point import SquaredKummerPoint
         return SquaredKummerPoint(self, self._zero, self.Mij)
@@ -143,6 +179,15 @@ class SquaredKummerSurface:
     # ------------------------------------------------------------------
     # Rosenhain invariants
     # ------------------------------------------------------------------
+
+    def rosenhain_to_zero(self):
+        ros = self.rosenhain
+        λ, μ, ν = ros
+        d = 1
+        c = (λ*μ/ν).sqrt()
+        b = ( (μ*(μ-1)*(λ-ν)) / (ν*(ν-1)*(λ - μ)) ).sqrt()
+        a = b*c*ν/μ
+        return (a, b, c, d)
 
     def rosenhain_invariants(self, bit=0):
         """

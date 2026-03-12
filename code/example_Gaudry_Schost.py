@@ -33,36 +33,20 @@ _nu  = F(113206060534360680770189432771018826227)
 qo = 1809251394333065553571917326471206521441306174399683558571672623546356726339
 qt = 1809251394333065553414675955050290598923508843635941313077767297801179626051
 
-K = SquaredKummerSurface(_zero, rosenhain=(_lam, _mu, _nu),
-                          jacobian_order=2*qo, twist_order=2*qt)
+K = SquaredKummerSurface(_zero, jacobian_order=2*qo, twist_order=2*qt)
 
 # ------------------------------------------------------------------
 # Generator point  (xDBL applied once to lift off special locus)
 # ------------------------------------------------------------------
 _gen_raw = (F(1), F(1), F(1), F(78525529738642755703105688163803666634))
-gen = K.point(_gen_raw, validate=False).xDBL()
+gen = 2*K.point(_gen_raw, validate=False)
 
-# ------------------------------------------------------------------
-# Pre-generated random test points (as SquaredKummerPoints on K)
-# ------------------------------------------------------------------
-def _make_point(raw):
-    return K.point(tuple(F(x) for x in raw))
 
-random_points = [_make_point(raw) for raw in _raw_points]
-
-# ------------------------------------------------------------------
-# Convenience: canonical 2-torsion basis
-# ------------------------------------------------------------------
 basis = K.two_torsion_basis()
 
 
-# ------------------------------------------------------------------
-# Quick smoke test (run as script)
-# ------------------------------------------------------------------
 if __name__ == "__main__":
-    from random import choice
 
-    print("Null point on Kummer:", K.null_point().on_kummer())
     print("Generator on Kummer: ", gen.on_kummer())
 
     # Scalar multiplication sanity check: [qo] * gen == null point
@@ -70,9 +54,9 @@ if __name__ == "__main__":
     print("Order check passed: qo * gen == 0")
 
     # Profile of a doubled random point should be trivial (all True)
-    P = choice(random_points)
+    P = K.random_point()
     trivial = [True, True, True, True]
-    prof = P.profile(basis)
+    prof = P.two_profile(basis)
     print(f"Profile of  P: {prof}  (trivial = {prof == trivial})")
-    prof = P.xDBL().profile(basis)
+    prof = (2*P).two_profile(basis)
     print(f"Profile of 2P: {prof}  (trivial = {prof == trivial})")
