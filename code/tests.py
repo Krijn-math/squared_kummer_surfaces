@@ -8,7 +8,7 @@ Run with:  sage -python -m pytest tests.py
 import unittest
 from random import choice
 
-from example import K, gen, qo, random_points, basis, F
+from code.example_Gaudry_Schost import K, gen, qo, random_points, basis, F
 
 
 class TestKummerEquation(unittest.TestCase):
