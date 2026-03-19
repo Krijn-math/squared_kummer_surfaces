@@ -13,18 +13,4 @@ So far:
  - Example 2: The profile determines the coset: we know above which point we are!
  - Example 3: The 'magic' of Entangled Basis Generation and its generalizations. 
 
-## TODO
-The examples that still need to be fixed
- - sec 1, lemma 1
- - sec 1, theorem 1
- - sec 2, example 1
- - sec 2, example 2
- - sec 3, main theorem
- - sec 5, subsec 1
- - sec 5, subsec 2
- - sec 5, subsec 3
- - sec 5, subsec 4
- - sec 5, subsec 5
- - sec 5, subsec 6
- - sec 5, subsec 7
- - add example of testing R in <P> when R and P are isotropic
+The rest is Claude-vibed, and has major issues.

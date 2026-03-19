@@ -14,7 +14,9 @@ One thing to be careful with when computing directly on the Kummer, e.g. not der
 ## EXAMPLES:
 There are a few examples on computing pairings on jacobians and kummers, and one for computing profiles. 
 See the files that start with `example_` for more explanation.
+Furthermore, for my note on the Tate pairing (ePrint 2025/477), there is a folder with examples for most use cases.
 
 ## TODO:
- - due to some constraints, it is now focused on supersingular Jacobians of order (p+1)^2, although it should be easy to generalize to most other Jacobians, I think
+ - due to some constraints, it is now focused on supersingular Jacobians of order (p+1)^2, although it should be easy to generalize to most other Jacobian
  - there is only limited functionality for translating points on Jacobians to their Kummer points; we rely on rosenhain invariants to make this work
+ - - hence, usually, you should precompose your Jacobian with an isomorphism to one in Rosenhain form
