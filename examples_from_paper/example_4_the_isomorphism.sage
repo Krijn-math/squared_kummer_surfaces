@@ -1,4 +1,112 @@
+p = 13
+F.<z2> = GF(p**2)
+R.<x> = F[]
+
+λ = 8*z2 + 5
+μ = 5*z2
+ν = 5*z2 + 5
+
+# while True:
+#     used = [0,1]
+    
+#     while True:
+#         λ = F.random_element()
+#         if not λ in used:
+#             used.append(λ)
+#             break
+    
+#     while True:
+#         μ = F.random_element()
+#         if not μ in used:
+#             used.append(λ)
+#             break
+    
+#     while True:
+#         ν = F.random_element()
+#         if not ν in used:
+#             used.append(λ)
+#             break        
+
+H = HyperellipticCurve(x*(x-1)*(x-λ)*(x-μ)*(x-ν))
+J = H.jacobian()
+
+def random_curve_point(curve):
+    while True:
+        try:
+            return curve.lift_x(F.random_element())
+        except:
+            pass
+        
+def random_jacobian_element(jac):
+    P1 = random_curve_point(jac.curve())
+    P2 = random_curve_point(jac.curve())
+    return jac(P1) + jac(P2)
+
+def major_order(P):
+    zero = P.scheme()(0)
+    n = 0
+    while True:
+        n += 1
+        if factorial(n)*P == zero:
+            return n
+
+def max_val(P):
+    full = prod(primes(2, major_order(P)))
+    k = 0
+    while P != 0*P:
+        k += 1
+        P = full*P
+    
+    return k   
+
+def order(P):
+    zero = P.scheme()(0)    
+    ord = 1
+    Q = P
+    while Q != zero:
+        ord +=1
+        Q = Q + P
+        
+    return ord
+
+def sample_order(ell):
+    for i in range(10):
+        P = random_jacobian_element(J)
+        ord = order(P)
+        if ord % ell == 0:
+            return (ord // ell)*P
+
+points = []
+orders = []
+prime_facs = []
+for i in range(10):
+    P = random_jacobian_element(J)
+    z = order(P)
+    
+    points.append(P)
+    orders.append(z)
+    prime_facs += prime_factors(z)
+
+prime_facs = Set(prime_facs).list()
+# prime_facs.pop(prime_facs.index(2))
+max_vals = [ max([ valuation(ord, ell) for ord in orders ]) for ell in prime_facs ]
+
+print(orders)
+print(prime_facs)
+print(max_vals)
+print()
+
+    # high = max(max_vals)
+    # if high > 2:
+    #     break
+
+assert 3 == 5
+
+
 """
+
+TODO: the dim-2 example should really be on a more interesting surface, we can take anything essentially
+
 Section 2.2 -- Profiles assuming rational n-torsion.
 
 When E[n](F_q) = E[n]  (full n-torsion is F_q-rational), the profile map

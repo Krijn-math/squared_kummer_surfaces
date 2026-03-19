@@ -9,7 +9,9 @@ I will go through each example in due time to make these correct and nice.
 
 ## FIXED EXAMPLES
 So far: 
- - none
+ - Example 1: Husemoller's theorem: divisibility is implied by squares
+ - Example 2: The profile determines the coset: we know above which point we are!
+ - Example 3: The 'magic' of Entangled Basis Generation and its generalizations. 
 
 ## TODO
 The examples that still need to be fixed
