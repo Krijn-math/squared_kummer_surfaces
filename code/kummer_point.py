@@ -461,6 +461,7 @@ class SquaredKummerPoint:
     def unreduced_tate_pairing(self, R, ell, difference=None):
         # essentially computes the square of the Tate pairing
         # TODO: fix linearity
+        assert ell % 2 == 1
         assert (ell*self).is_zero()
         P = self
         
