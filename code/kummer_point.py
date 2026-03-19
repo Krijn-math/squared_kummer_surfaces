@@ -490,6 +490,7 @@ class SquaredKummerPoint:
 
     def tate_pairing(self, R, ell, difference=None):
         # TODO: generalize to any field, not just Fp2
+        assert ell % 2 == 1
         assert (ell*self).is_zero()
         q = self.surface.field.cardinality()
         k = self.surface.embedding_degree(ell)
